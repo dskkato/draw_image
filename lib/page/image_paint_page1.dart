@@ -4,6 +4,7 @@ import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'dart:ui' as ui;
 import 'dart:io'; //　File
+import 'package:path_provider/path_provider.dart';
 import 'dart:typed_data'; // Uint8List
 import 'package:quiver/iterables.dart' show cycle;
 import '../drawing_area.dart';
@@ -143,8 +144,9 @@ class _ImagePaintPageState extends State<ImagePaintPage1> {
             final recorder = ui.PictureRecorder();
             final canvas = Canvas(recorder);
 
-            var painter = ImagePainter(image!, areas!);
-            var size = Size(image!.width.toDouble(), image!.height.toDouble());
+            final painter = ImagePainter(image!, areas!);
+            final size =
+                Size(image!.width.toDouble(), image!.height.toDouble());
             painter.paint(canvas, size);
             final picture = recorder.endRecording();
             final img = await picture.toImage(image!.width, image!.height);
@@ -153,24 +155,46 @@ class _ImagePaintPageState extends State<ImagePaintPage1> {
             _requestPermission();
             final result = await ImageGallerySaver.saveImage(
               Uint8List.view(buf!.buffer),
-              name: "hello",
+              quality: 100,
+              name: 'hello',
             );
             print(result);
+
+            await writeCounter(List<int>.from(Uint8List.view(buf.buffer)));
           },
           child: Text('Save'),
         ),
       ],
     );
   }
+}
 
-  _requestPermission() async {
-    Map<Permission, PermissionStatus> statuses = await [
-      Permission.storage,
-    ].request();
+_requestPermission() async {
+  Map<Permission, PermissionStatus> statuses = await [
+    Permission.storage,
+  ].request();
 
-    final info = statuses[Permission.storage].toString();
-    print(info);
-  }
+  final info = statuses[Permission.storage].toString();
+  print(info);
+}
+
+Future<String> get _localPath async {
+  final directory = await getApplicationDocumentsDirectory();
+
+  return directory.path;
+}
+
+Future<File> get _localFile async {
+  final path = await _localPath;
+  print(path);
+  return File('$path/counter.png');
+}
+
+Future<File> writeCounter(List<int> bytes) async {
+  final file = await _localFile;
+
+  // Write the file
+  return file.writeAsBytes(bytes);
 }
 
 class ImagePainter extends CustomPainter {
