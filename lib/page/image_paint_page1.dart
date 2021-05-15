@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:image_gallery_saver/image_gallery_saver.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'dart:ui' as ui;
+import 'dart:io'; //　File
+import 'dart:typed_data'; // Uint8List
 import 'package:quiver/iterables.dart' show cycle;
 import '../drawing_area.dart';
 import '../my_drawing_area.dart';
@@ -56,80 +60,116 @@ class _ImagePaintPageState extends State<ImagePaintPage1> {
   @override
   Widget build(BuildContext context) {
     areas = MyDrawingArea.of(context);
-    return Container(
-      child: Center(
-        child: image == null
-            ? CircularProgressIndicator()
-            : GestureDetector(
-                onPanUpdate: (details) {
-                  var point = details.localPosition;
-                  if (_isDrawing) {
-                    final points = areas!.last.points;
-                    final startPoint = points.first;
-                    if (points.length > 10 &&
-                        (point - startPoint).distance < _minDistance) {
-                      // close the path
-                      setState(() {
-                        areas!.last.points.add(point);
-                        areas!.last.isClose = true;
-                        areas!.last.paint = _closePaints.current;
-                        _closePaints.moveNext();
-                        _isDrawing = false;
-                      });
-                    } else {
-                      // update the path
-                      setState(() {
-                        areas!.last.points.add(point);
-                      });
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        Center(
+          child: image == null
+              ? CircularProgressIndicator()
+              : GestureDetector(
+                  onPanUpdate: (details) {
+                    var point = details.localPosition;
+                    if (_isDrawing) {
+                      final points = areas!.last.points;
+                      final startPoint = points.first;
+                      if (points.length > 10 &&
+                          (point - startPoint).distance < _minDistance) {
+                        // close the path
+                        setState(() {
+                          areas!.last.points.add(point);
+                          areas!.last.isClose = true;
+                          areas!.last.paint = _closePaints.current;
+                          _closePaints.moveNext();
+                          _isDrawing = false;
+                        });
+                      } else {
+                        // update the path
+                        setState(() {
+                          areas!.last.points.add(point);
+                        });
+                      }
                     }
-                  }
-                },
-                onPanStart: (details) {
-                  var point = details.localPosition;
-                  if (_isDrawing) {
-                    final points = areas!.last.points;
-                    final startPoint = points.first;
-                    if ((point - startPoint).distance < _minDistance) {
-                      // close the path
-                      setState(() {
-                        areas!.last.points.add(point);
-                        areas!.last.isClose = true;
-                        areas!.last.paint = _closePaints.current;
-                        _closePaints.moveNext();
-                        _isDrawing = false;
-                      });
+                  },
+                  onPanStart: (details) {
+                    var point = details.localPosition;
+                    if (_isDrawing) {
+                      final points = areas!.last.points;
+                      final startPoint = points.first;
+                      if ((point - startPoint).distance < _minDistance) {
+                        // close the path
+                        setState(() {
+                          areas!.last.points.add(point);
+                          areas!.last.isClose = true;
+                          areas!.last.paint = _closePaints.current;
+                          _closePaints.moveNext();
+                          _isDrawing = false;
+                        });
+                      } else {
+                        // update the path
+                        setState(() {
+                          areas!.last.points.add(point);
+                        });
+                      }
                     } else {
-                      // update the path
-                      setState(() {
-                        areas!.last.points.add(point);
-                      });
-                    }
-                  } else {
-                    // start a path
-                    final area = DrawingArea(_openPaints.current);
-                    area.points.add(point);
+                      // start a path
+                      final area = DrawingArea(_openPaints.current);
+                      area.points.add(point);
 
-                    setState(() {
-                      areas!.add(area);
-                      _openPaints.moveNext();
-                      _isDrawing = true;
-                    });
-                  }
-                },
-                child: Container(
-                  child: FittedBox(
-                    child: SizedBox(
-                      width: image!.width.toDouble(),
-                      height: image!.height.toDouble(),
-                      child: CustomPaint(
-                        painter: ImagePainter(image!, areas!),
+                      setState(() {
+                        areas!.add(area);
+                        _openPaints.moveNext();
+                        _isDrawing = true;
+                      });
+                    }
+                  },
+                  child: Container(
+                    child: FittedBox(
+                      child: SizedBox(
+                        width: image!.width.toDouble(),
+                        height: image!.height.toDouble(),
+                        child: ClipRect(
+                          child: CustomPaint(
+                            painter: ImagePainter(image!, areas!),
+                          ),
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-      ),
+        ),
+        ElevatedButton(
+          onPressed: () async {
+            print("onPressed");
+            final recorder = ui.PictureRecorder();
+            final canvas = Canvas(recorder);
+
+            var painter = ImagePainter(image!, areas!);
+            var size = Size(image!.width.toDouble(), image!.height.toDouble());
+            painter.paint(canvas, size);
+            final picture = recorder.endRecording();
+            final img = await picture.toImage(image!.width, image!.height);
+            final buf = await img.toByteData(format: ui.ImageByteFormat.png);
+            print(buf);
+            _requestPermission();
+            final result = await ImageGallerySaver.saveImage(
+              Uint8List.view(buf!.buffer),
+              name: "hello",
+            );
+            print(result);
+          },
+          child: Text('Save'),
+        ),
+      ],
     );
+  }
+
+  _requestPermission() async {
+    Map<Permission, PermissionStatus> statuses = await [
+      Permission.storage,
+    ].request();
+
+    final info = statuses[Permission.storage].toString();
+    print(info);
   }
 }
 
