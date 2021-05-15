@@ -31,7 +31,7 @@ class DrawingArea {
   DrawingArea(this.paint);
 }
 
-class _HomeState extends State<Home> {
+class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   List<DrawingArea> areas = [];
   final _minDistance = 5.0;
   bool _isDrawing = false;
@@ -59,83 +59,113 @@ class _HomeState extends State<Home> {
     'assets/fruit.jpg',
   );
 
+  late TabController _tabController;
+  final List<Tab> myTabs = [
+    Tab(
+      text: 'MyDrawer',
+    ),
+    Tab(
+      text: 'NextDrawer',
+    ),
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: myTabs.length, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('MyDrawer'),
+        title: Text('DrawerSample'),
+        bottom: TabBar(
+          controller: _tabController,
+          tabs: myTabs,
+        ),
       ),
-      body: Container(
-        padding: EdgeInsets.all(20),
-        child: Container(
-          child: GestureDetector(
-            onPanUpdate: (details) {
-              var point = details.localPosition;
-              if (_isDrawing) {
-                final points = areas.last.points;
-                final startPoint = points.first;
-                if (points.length > 10 &&
-                    (point - startPoint).distance < _minDistance) {
-                  // close the path
-                  setState(() {
-                    areas.last.points.add(point);
-                    areas.last.isClose = true;
-                    areas.last.paint = _closePaints.current;
-                    _closePaints.moveNext();
-                    _isDrawing = false;
-                  });
-                } else {
-                  // update the path
-                  setState(() {
-                    areas.last.points.add(point);
-                  });
+      body: TabBarView(
+        controller: _tabController,
+        children: [
+          Container(
+            padding: EdgeInsets.all(20),
+            child: GestureDetector(
+              onPanUpdate: (details) {
+                var point = details.localPosition;
+                if (_isDrawing) {
+                  final points = areas.last.points;
+                  final startPoint = points.first;
+                  if (points.length > 10 &&
+                      (point - startPoint).distance < _minDistance) {
+                    // close the path
+                    setState(() {
+                      areas.last.points.add(point);
+                      areas.last.isClose = true;
+                      areas.last.paint = _closePaints.current;
+                      _closePaints.moveNext();
+                      _isDrawing = false;
+                    });
+                  } else {
+                    // update the path
+                    setState(() {
+                      areas.last.points.add(point);
+                    });
+                  }
                 }
-              }
-            },
-            onPanStart: (details) {
-              var point = details.localPosition;
-              if (_isDrawing) {
-                final points = areas.last.points;
-                final startPoint = points.first;
-                if ((point - startPoint).distance < _minDistance) {
-                  // close the path
-                  setState(() {
-                    areas.last.points.add(point);
-                    areas.last.isClose = true;
-                    areas.last.paint = _closePaints.current;
-                    _closePaints.moveNext();
-                    _isDrawing = false;
-                  });
+              },
+              onPanStart: (details) {
+                var point = details.localPosition;
+                if (_isDrawing) {
+                  final points = areas.last.points;
+                  final startPoint = points.first;
+                  if ((point - startPoint).distance < _minDistance) {
+                    // close the path
+                    setState(() {
+                      areas.last.points.add(point);
+                      areas.last.isClose = true;
+                      areas.last.paint = _closePaints.current;
+                      _closePaints.moveNext();
+                      _isDrawing = false;
+                    });
+                  } else {
+                    // update the path
+                    setState(() {
+                      areas.last.points.add(point);
+                    });
+                  }
                 } else {
-                  // update the path
-                  setState(() {
-                    areas.last.points.add(point);
-                  });
-                }
-              } else {
-                // start a path
-                final area = DrawingArea(_openPaints.current);
-                area.points.add(point);
+                  // start a path
+                  final area = DrawingArea(_openPaints.current);
+                  area.points.add(point);
 
-                setState(() {
-                  areas.add(area);
-                  _openPaints.moveNext();
-                  _isDrawing = true;
-                });
-              }
-            },
-            child: ClipRect(
-              child: Stack(
-                children: [
-                  image,
-                  CustomPaint(
-                    painter: DrawingPainter(areas),
-                  ),
-                ],
+                  setState(() {
+                    areas.add(area);
+                    _openPaints.moveNext();
+                    _isDrawing = true;
+                  });
+                }
+              },
+              child: ClipRect(
+                child: Stack(
+                  children: [
+                    image,
+                    CustomPaint(
+                      painter: DrawingPainter(areas),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
-        ),
+          Text('NextDrawer'),
+        ],
       ),
     );
   }
