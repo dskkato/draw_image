@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'dart:ui' as ui;
 import 'package:quiver/iterables.dart';
 import '../drawing_area.dart';
+import '../my_drawing_area.dart';
 
 class ImagePaintPage1 extends StatefulWidget {
   @override
@@ -11,7 +12,7 @@ class ImagePaintPage1 extends StatefulWidget {
 
 class _ImagePaintPageState extends State<ImagePaintPage1> {
   ui.Image? image;
-  List<DrawingArea> areas = [];
+  List<DrawingArea>? areas;
   final _minDistance = 3.0;
   bool _isDrawing = false;
 
@@ -54,6 +55,7 @@ class _ImagePaintPageState extends State<ImagePaintPage1> {
 
   @override
   Widget build(BuildContext context) {
+    areas = MyDrawingArea.of(context);
     return Container(
       child: Center(
         child: image == null
@@ -62,22 +64,22 @@ class _ImagePaintPageState extends State<ImagePaintPage1> {
                 onPanUpdate: (details) {
                   var point = details.localPosition;
                   if (_isDrawing) {
-                    final points = areas.last.points;
+                    final points = areas!.last.points;
                     final startPoint = points.first;
                     if (points.length > 10 &&
                         (point - startPoint).distance < _minDistance) {
                       // close the path
                       setState(() {
-                        areas.last.points.add(point);
-                        areas.last.isClose = true;
-                        areas.last.paint = _closePaints.current;
+                        areas!.last.points.add(point);
+                        areas!.last.isClose = true;
+                        areas!.last.paint = _closePaints.current;
                         _closePaints.moveNext();
                         _isDrawing = false;
                       });
                     } else {
                       // update the path
                       setState(() {
-                        areas.last.points.add(point);
+                        areas!.last.points.add(point);
                       });
                     }
                   }
@@ -85,21 +87,21 @@ class _ImagePaintPageState extends State<ImagePaintPage1> {
                 onPanStart: (details) {
                   var point = details.localPosition;
                   if (_isDrawing) {
-                    final points = areas.last.points;
+                    final points = areas!.last.points;
                     final startPoint = points.first;
                     if ((point - startPoint).distance < _minDistance) {
                       // close the path
                       setState(() {
-                        areas.last.points.add(point);
-                        areas.last.isClose = true;
-                        areas.last.paint = _closePaints.current;
+                        areas!.last.points.add(point);
+                        areas!.last.isClose = true;
+                        areas!.last.paint = _closePaints.current;
                         _closePaints.moveNext();
                         _isDrawing = false;
                       });
                     } else {
                       // update the path
                       setState(() {
-                        areas.last.points.add(point);
+                        areas!.last.points.add(point);
                       });
                     }
                   } else {
@@ -108,7 +110,7 @@ class _ImagePaintPageState extends State<ImagePaintPage1> {
                     area.points.add(point);
 
                     setState(() {
-                      areas.add(area);
+                      areas!.add(area);
                       _openPaints.moveNext();
                       _isDrawing = true;
                     });
@@ -120,7 +122,7 @@ class _ImagePaintPageState extends State<ImagePaintPage1> {
                       width: image!.width.toDouble(),
                       height: image!.height.toDouble(),
                       child: CustomPaint(
-                        painter: ImagePainter(image!, areas),
+                        painter: ImagePainter(image!, areas!),
                       ),
                     ),
                   ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:ui' as ui;
 import 'package:quiver/iterables.dart';
 import '../drawing_area.dart';
+import '../my_drawing_area.dart';
 
 class ImagePaintPage2 extends StatefulWidget {
   @override
@@ -9,7 +10,7 @@ class ImagePaintPage2 extends StatefulWidget {
 }
 
 class _ImagePaintPageState extends State<ImagePaintPage2> {
-  List<DrawingArea> areas = [];
+  List<DrawingArea>? areas;
   final _minDistance = 3.0;
   bool _isDrawing = false;
 
@@ -39,27 +40,28 @@ class _ImagePaintPageState extends State<ImagePaintPage2> {
 
   @override
   build(context) {
+    areas = MyDrawingArea.of(context);
     return Center(
       child: GestureDetector(
         onPanUpdate: (details) {
           var point = details.localPosition;
           if (_isDrawing) {
-            final points = areas.last.points;
+            final points = areas!.last.points;
             final startPoint = points.first;
             if (points.length > 10 &&
                 (point - startPoint).distance < _minDistance) {
               // close the path
               setState(() {
-                areas.last.points.add(point);
-                areas.last.isClose = true;
-                areas.last.paint = _closePaints.current;
+                areas!.last.points.add(point);
+                areas!.last.isClose = true;
+                areas!.last.paint = _closePaints.current;
                 _closePaints.moveNext();
                 _isDrawing = false;
               });
             } else {
               // update the path
               setState(() {
-                areas.last.points.add(point);
+                areas!.last.points.add(point);
               });
             }
           }
@@ -67,21 +69,21 @@ class _ImagePaintPageState extends State<ImagePaintPage2> {
         onPanStart: (details) {
           var point = details.localPosition;
           if (_isDrawing) {
-            final points = areas.last.points;
+            final points = areas!.last.points;
             final startPoint = points.first;
             if ((point - startPoint).distance < _minDistance) {
               // close the path
               setState(() {
-                areas.last.points.add(point);
-                areas.last.isClose = true;
-                areas.last.paint = _closePaints.current;
+                areas!.last.points.add(point);
+                areas!.last.isClose = true;
+                areas!.last.paint = _closePaints.current;
                 _closePaints.moveNext();
                 _isDrawing = false;
               });
             } else {
               // update the path
               setState(() {
-                areas.last.points.add(point);
+                areas!.last.points.add(point);
               });
             }
           } else {
@@ -90,7 +92,7 @@ class _ImagePaintPageState extends State<ImagePaintPage2> {
             area.points.add(point);
 
             setState(() {
-              areas.add(area);
+              areas!.add(area);
               _openPaints.moveNext();
               _isDrawing = true;
             });
@@ -101,7 +103,7 @@ class _ImagePaintPageState extends State<ImagePaintPage2> {
             children: [
               image,
               CustomPaint(
-                painter: DrawingPainter(areas),
+                painter: DrawingPainter(areas!),
               ),
             ],
           ),

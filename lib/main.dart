@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'page/image_paint_page1.dart';
 import 'page/image_paint_page2.dart';
+import 'my_drawing_area.dart';
 
 void main() {
   runApp(App());
@@ -50,13 +51,15 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
           tabs: myTabs,
         ),
       ),
-      body: TabBarView(
-        physics: NeverScrollableScrollPhysics(),
-        controller: _tabController,
-        children: [
-          ImagePaintPage1(),
-          ImagePaintPage2(),
-        ],
+      body: MyDrawingArea(
+        child: TabBarView(
+          physics: NeverScrollableScrollPhysics(),
+          controller: _tabController,
+          children: [
+            ImagePaintPage1(),
+            ImagePaintPage2(),
+          ],
+        ),
       ),
     );
   }
