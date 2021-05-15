@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:ui' as ui;
-import 'package:quiver/iterables.dart';
+import 'package:quiver/iterables.dart' show cycle;
 import '../drawing_area.dart';
 import '../my_drawing_area.dart';
 
