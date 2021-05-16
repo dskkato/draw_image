@@ -164,12 +164,14 @@ class _ImagePaintPageState extends State<ImagePaintPage1> {
 }
 
 _requestPermission() async {
-  Map<Permission, PermissionStatus> statuses = await [
-    Permission.storage,
-  ].request();
+  if (Platform.isAndroid || Platform.isIOS) {
+    Map<Permission, PermissionStatus> statuses = await [
+      Permission.storage,
+    ].request();
 
-  final info = statuses[Permission.storage].toString();
-  print(info);
+    final info = statuses[Permission.storage].toString();
+    print(info);
+  }
 }
 
 Future<String> get _localPath async {
@@ -179,10 +181,9 @@ Future<String> get _localPath async {
   } else if (Platform.isIOS) {
     final directory = await getApplicationDocumentsDirectory();
     return directory.path;
-  } else {
-    final directory = await getDownloadsDirectory();
-    return directory!.path;
   }
+  final directory = await getDownloadsDirectory();
+  return directory!.path;
 }
 
 Future<File> get _localFile async {
