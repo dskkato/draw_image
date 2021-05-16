@@ -6,6 +6,7 @@ import 'dart:io'; //　File
 import 'package:path_provider/path_provider.dart';
 import 'dart:typed_data'; // Uint8List
 import 'package:quiver/iterables.dart' show cycle;
+import 'package:universal_platform/universal_platform.dart';
 import 'package:sprintf/sprintf.dart';
 import '../drawing_area.dart';
 import '../my_drawing_area.dart';
@@ -153,8 +154,10 @@ class _ImagePaintPageState extends State<ImagePaintPage1> {
             final buf = await img.toByteData(format: ui.ImageByteFormat.png);
             print(buf);
 
-            _requestPermission();
-            await writeCounter(List<int>.from(Uint8List.view(buf!.buffer)));
+            if(!UniversalPlatform.isWeb) {
+              _requestPermission();
+              await writeCounter(List<int>.from(Uint8List.view(buf!.buffer)));
+            }
           },
           child: Text('Save'),
         ),
