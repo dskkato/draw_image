@@ -140,25 +140,28 @@ class _ImagePaintPageState extends State<ImagePaintPage1> {
                 ),
         ),
         ElevatedButton(
-          onPressed: () async {
-            print("onPressed");
-            final recorder = ui.PictureRecorder();
-            final canvas = Canvas(recorder);
+          onPressed: UniversalPlatform.isWeb
+              ? null
+              : () async {
+                  print("onPressed");
+                  final recorder = ui.PictureRecorder();
+                  final canvas = Canvas(recorder);
 
-            final painter = ImagePainter(image!, areas!);
-            final size =
-                Size(image!.width.toDouble(), image!.height.toDouble());
-            painter.paint(canvas, size);
-            final picture = recorder.endRecording();
-            final img = await picture.toImage(image!.width, image!.height);
-            final buf = await img.toByteData(format: ui.ImageByteFormat.png);
-            print(buf);
+                  final painter = ImagePainter(image!, areas!);
+                  final size =
+                      Size(image!.width.toDouble(), image!.height.toDouble());
+                  painter.paint(canvas, size);
+                  final picture = recorder.endRecording();
+                  final img =
+                      await picture.toImage(image!.width, image!.height);
+                  final buf =
+                      await img.toByteData(format: ui.ImageByteFormat.png);
+                  print(buf);
 
-            if(!UniversalPlatform.isWeb) {
-              _requestPermission();
-              await writeCounter(List<int>.from(Uint8List.view(buf!.buffer)));
-            }
-          },
+                  _requestPermission();
+                  await writeCounter(
+                      List<int>.from(Uint8List.view(buf!.buffer)));
+                },
           child: Text('Save'),
         ),
       ],
