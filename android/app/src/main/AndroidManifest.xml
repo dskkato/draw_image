@@ -2,7 +2,6 @@
     package="com.example.draw_image">
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
-
    <application
         android:label="draw_image"
         android:icon="@mipmap/ic_launcher"

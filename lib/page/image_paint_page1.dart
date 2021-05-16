@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'dart:ui' as ui;
 import 'dart:io'; //　File
 import 'package:path_provider/path_provider.dart';
 import 'dart:typed_data'; // Uint8List
 import 'package:quiver/iterables.dart' show cycle;
+import 'package:sprintf/sprintf.dart';
 import '../drawing_area.dart';
 import '../my_drawing_area.dart';
 
@@ -152,15 +152,9 @@ class _ImagePaintPageState extends State<ImagePaintPage1> {
             final img = await picture.toImage(image!.width, image!.height);
             final buf = await img.toByteData(format: ui.ImageByteFormat.png);
             print(buf);
-            _requestPermission();
-            final result = await ImageGallerySaver.saveImage(
-              Uint8List.view(buf!.buffer),
-              quality: 100,
-              name: 'hello',
-            );
-            print(result);
 
-            await writeCounter(List<int>.from(Uint8List.view(buf.buffer)));
+            _requestPermission();
+            await writeCounter(List<int>.from(Uint8List.view(buf!.buffer)));
           },
           child: Text('Save'),
         ),
@@ -179,15 +173,25 @@ _requestPermission() async {
 }
 
 Future<String> get _localPath async {
-  final directory = await getApplicationDocumentsDirectory();
-
-  return directory.path;
+  if (Platform.isAndroid) {
+    final directory = await getExternalStorageDirectory();
+    return directory!.path;
+  } else if (Platform.isIOS) {
+    final directory = await getApplicationDocumentsDirectory();
+    return directory.path;
+  } else {
+    final directory = await getDownloadsDirectory();
+    return directory!.path;
+  }
 }
 
 Future<File> get _localFile async {
   final path = await _localPath;
-  print(path);
-  return File('$path/counter.png');
+  final now = DateTime.now().toUtc();
+  final fileName = sprintf('$path/%04d%02d%02d-%02d%02d%02d.png',
+      [now.year, now.month, now.day, now.hour, now.minute, now.second]);
+  print(fileName);
+  return File(fileName);
 }
 
 Future<File> writeCounter(List<int> bytes) async {

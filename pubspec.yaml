@@ -23,8 +23,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  sprintf: ^6.0.0
   quiver: ^3.0.1
-  image_gallery_saver: ^1.6.9
   permission_handler: ^7.1.0
   path_provider: ^2.0.1
 
